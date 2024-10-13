@@ -1,12 +1,14 @@
-from torch import nn
 import torch
+import torch.nn as nn
 
 class RMSNorm(nn.Module):
-    def __init__(self, dim, eps=1e-5):
+    def __init__(self, dimension, epsilon=1e-5):
         super().__init__()
-        self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim))
+        self.epsilon = epsilon
+        self.scale = nn.Parameter(torch.ones(dimension))
 
     def forward(self, x):
-        means = x.pow(2).mean(-1, keepdim=True)
-        return x * torch.rsqrt(means + self.eps) * self.weight
+        mean_squared = x.pow(2).mean(dim=-1, keepdim=True)
+        normalization_factor = torch.rsqrt(mean_squared + self.epsilon)
+        normalized_input = x * normalization_factor
+        return (normalized_input * self.scale).to(x.dtype)

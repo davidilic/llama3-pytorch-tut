@@ -1,3 +1,4 @@
+from typing import Any, Dict, Protocol
 import torch
 from torch import nn
 
@@ -31,24 +32,33 @@ class SharedBuffers:
             cls._buffers[key] = (mask, cos.to(dtype), sin.to(dtype))
         return cls._buffers[key]
 
+class AttentionConfig(Protocol):
+    embedding_dim: int
+    context_length: int
+    num_heads: int
+    num_kv_groups: int
+    rope_base: int
+    rope_freq: Dict[str, Any]
+    dtype: Any
+
 class GroupedQueryAttention(nn.Module):
-    def __init__(self, d_in, d_out, context_length, num_heads, num_kv_groups, rope_base=10_000, rope_config=None, dtype=None):
+    def __init__(self, config: AttentionConfig):
         super().__init__()
-        assert d_out % num_heads == 0, "d_out must be divisible by num_heads"
-        assert num_heads % num_kv_groups == 0, "num_heads must be divisible by num_kv_groups"
+        assert config.embedding_dim % config.num_heads == 0, "embedding_dim must be divisible by num_heads"
+        assert config.num_heads % config.num_kv_groups == 0, "num_heads must be divisible by num_kv_groups"
         
-        self.d_out = d_out
-        self.num_heads = num_heads
-        self.head_dim = d_out // num_heads
-        self.num_kv_groups = num_kv_groups
-        self.group_size = num_heads // num_kv_groups
+        self.d_out = config.embedding_dim
+        self.num_heads = config.num_heads
+        self.head_dim = config.embedding_dim // config.num_heads
+        self.num_kv_groups = config.num_kv_groups
+        self.group_size = config.num_heads // config.num_kv_groups
 
-        self.W_query = nn.Linear(d_in, d_out, bias=False, dtype=dtype)
-        self.W_key = nn.Linear(d_in, num_kv_groups * self.head_dim, bias=False, dtype=dtype)
-        self.W_value = nn.Linear(d_in, num_kv_groups * self.head_dim, bias=False, dtype=dtype)
-        self.out_proj = nn.Linear(d_out, d_out, bias=False, dtype=dtype)
+        self.W_query = nn.Linear(config.embedding_dim, config.embedding_dim, bias=False, dtype=config.dtype)
+        self.W_key = nn.Linear(config.embedding_dim, config.num_kv_groups * self.head_dim, bias=False, dtype=config.dtype)
+        self.W_value = nn.Linear(config.embedding_dim, config.num_kv_groups * self.head_dim, bias=False, dtype=config.dtype)
+        self.out_proj = nn.Linear(config.embedding_dim, config.embedding_dim, bias=False, dtype=config.dtype)
 
-        mask, cos, sin = SharedBuffers.get(context_length, self.head_dim, rope_base, rope_config, dtype)
+        mask, cos, sin = SharedBuffers.get(config.context_length, self.head_dim, config.rope_base, config.rope_freq, config.dtype)
         self.register_buffer("mask", mask)
         self.register_buffer("cos", cos)
         self.register_buffer("sin", sin)

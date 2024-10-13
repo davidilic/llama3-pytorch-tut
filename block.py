@@ -1,30 +1,25 @@
+from typing import Any, Dict, Protocol
 from torch import nn
-from config import LlamaConfig
 from rms_norm import RMSNorm
 from feedforward import FeedForward
 from attention import GroupedQueryAttention
 
-class TransformerLayer(nn.Module):
-    def __init__(self, config: LlamaConfig):
+class TransformerBlockConfig(Protocol):
+    embedding_dim: int
+    context_length: int
+    num_heads: int
+    num_kv_groups: int
+    rope_base: int
+    rope_freq: Dict[str, Any]
+    dtype: Any
+    hidden_dim: int
+
+
+class TransformerBlock(nn.Module):
+    def __init__(self, config: TransformerBlockConfig):
         super().__init__()
-        
-        self.attention = GroupedQueryAttention(
-            config.embedding_dim,
-            config.embedding_dim,
-            config.context_length,
-            config.num_heads,
-            config.num_kv_groups,
-            config.rope_base,
-            config.rope_freq,
-            config.dtype
-        )
-
-        self.feed_forward = FeedForward(
-            config.embedding_dim,
-            config.hidden_dim,
-            config.dtype
-        )
-
+        self.attention = GroupedQueryAttention(config)
+        self.feed_forward = FeedForward(config.embedding_dim, config.hidden_dim, config.dtype)
         self.attention_norm = RMSNorm(config.embedding_dim)
         self.feed_forward_norm = RMSNorm(config.embedding_dim)
 

@@ -22,12 +22,6 @@ def get_llama_config():
         hidden_dim=4096,
         num_kv_groups=4,
         rope_base=10000,
-        rope_freq={
-            "factor": 32,
-            "low_freq_factor": 1.0,
-            "high_freq_factor": 4.0,
-            "original_context_length": 512
-        },
         dtype=torch.bfloat16
     )
 

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
 from torch import nn
 from rms_norm import RMSNorm
 from feedforward import FeedForward
@@ -10,7 +10,6 @@ class TransformerBlockConfig(Protocol):
     num_heads: int
     num_kv_groups: int
     rope_base: int
-    rope_freq: Dict[str, Any]
     dtype: Any
     hidden_dim: int
 

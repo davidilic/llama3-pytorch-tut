@@ -1,4 +1,4 @@
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
 import torch
 from torch import nn
 
@@ -24,8 +24,8 @@ class SharedBuffers:
     _buffers = {}
 
     @classmethod
-    def get(cls, context_length, head_dim, rope_base, freq_config, dtype=torch.float32):
-        key = (context_length, head_dim, rope_base, tuple(freq_config.values()) if freq_config else freq_config, dtype)
+    def get(cls, context_length, head_dim, rope_base, dtype=torch.float32):
+        key = (context_length, head_dim, rope_base, dtype)
         if key not in cls._buffers:
             mask = torch.triu(torch.ones(context_length, context_length), diagonal=1)
             cos, sin = RoPEParams.precompute(head_dim, rope_base, context_length)
@@ -38,7 +38,6 @@ class AttentionConfig(Protocol):
     num_heads: int
     num_kv_groups: int
     rope_base: int
-    rope_freq: Dict[str, Any]
     dtype: Any
 
 class GroupedQueryAttention(nn.Module):
@@ -58,7 +57,7 @@ class GroupedQueryAttention(nn.Module):
         self.W_value = nn.Linear(config.embedding_dim, config.num_kv_groups * self.head_dim, bias=False, dtype=config.dtype)
         self.out_proj = nn.Linear(config.embedding_dim, config.embedding_dim, bias=False, dtype=config.dtype)
 
-        mask, cos, sin = SharedBuffers.get(config.context_length, self.head_dim, config.rope_base, config.rope_freq, config.dtype)
+        mask, cos, sin = SharedBuffers.get(config.context_length, self.head_dim, config.rope_base, config.dtype)
         self.register_buffer("mask", mask)
         self.register_buffer("cos", cos)
         self.register_buffer("sin", sin)

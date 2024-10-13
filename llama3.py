@@ -2,7 +2,6 @@ import torch
 from torch import nn
 from rms_norm import RMSNorm
 from block import TransformerBlock
-from typing import Optional
 from dataclasses import dataclass
 
 @dataclass
@@ -15,7 +14,6 @@ class LlamaConfig:
     hidden_dim: int
     num_kv_groups: int
     rope_base: float
-    rope_freq: Optional[dict] = None
     dtype: torch.dtype = torch.bfloat16
 
 class Llama3(nn.Module):

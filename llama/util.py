@@ -1,6 +1,5 @@
 import tiktoken
 import torch
-from llama.llama3 import Llama3
 
 def generate_text(model, initial_tokens, max_new_tokens, context_size):
     generated_tokens = initial_tokens

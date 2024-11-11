@@ -9,7 +9,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     llama_config = LlamaConfig(
-        vocab_size=32000,        # Reduced from 50257
+        vocab_size=50257,        # Reduced from 50257
         context_length=1024,     # Keep as is
         embedding_dim=512,       # Reduced from 624
         num_heads=8,            # Reduced from 12
@@ -25,7 +25,7 @@ def main():
         max_learning_rate=3e-4,  # Reduced from 5e-4
         num_epochs=3,           # Reduced from 10
         patience=2,             # Reduced from 3
-        checkpoint_path=Path('checkpoints/llama_80m.pth'),
+        checkpoint_path=Path('checkpoints/llama_100m.pth'),
         dataset_path="data/pes2o",
         batch_size=16,          # Reduced from 32
         context_length=1024     # Keep as is

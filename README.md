@@ -1,0 +1,3 @@
+- Create LLama 3.2 model
+- Calculated the amount of data needed to properly train a 125M model using scaling laws
+- Trained the model on 2.5 billion tokens

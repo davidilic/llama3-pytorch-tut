@@ -25,7 +25,7 @@ def main():
         max_learning_rate=3e-4,  # Reduced from 5e-4
         num_epochs=3,           # Reduced from 10
         patience=2,             # Reduced from 3
-        checkpoint_path=Path('checkpoints/llama_100m.pth'),
+        checkpoints_folder=Path('checkpoints/'),
         dataset_path="data/pes2o",
         batch_size=16,          # Reduced from 32
         context_length=1024     # Keep as is

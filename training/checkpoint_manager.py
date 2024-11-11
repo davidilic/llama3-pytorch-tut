@@ -9,20 +9,21 @@ class CheckpointManager:
         self.best_val_loss = None
         self.patience_counter = 0
 
-    def save_checkpoint(self, model, optimizer, epoch):
+    def save_checkpoint(self, model, optimizer, epoch, checkpoint_name: str):
         """Save model checkpoint."""
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'best_val_loss': self.best_val_loss,
-        }, self.config.checkpoint_path)
+        }, self.config.checkpoints_folder / checkpoint_name)
         logger.info(f"Checkpoint saved at epoch {epoch + 1}")
 
-    def load_checkpoint(self, model, optimizer):
+    def load_checkpoint(self, model, optimizer, checkpoint_name: str):
         """Load checkpoint if it exists. Returns starting epoch."""
-        if self.config.checkpoint_path.exists():
-            checkpoint = torch.load(self.config.checkpoint_path)
+        checkpoint_path = self.config.checkpoints_folder / checkpoint_name
+        if checkpoint_path.exists():
+            checkpoint = torch.load(checkpoint_path)
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             self.best_val_loss = checkpoint['best_val_loss']

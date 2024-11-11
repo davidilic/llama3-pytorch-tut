@@ -44,7 +44,8 @@ class LlamaTrainer:
         self.model.train()
         train_dataloader, val_dataloader, test_dataloader = self.data_handler.get_dataloaders()
 
-        starting_epoch = self.checkpoint_manager.load_checkpoint(self.model, self.optimizer)
+        starting_epoch = self.checkpoint_manager.load_checkpoint(self.model, self.optimizer, "llama_latest.pth") or \
+                        self.checkpoint_manager.load_checkpoint(self.model, self.optimizer, "llama_best.pth")
 
         for epoch in tqdm(range(starting_epoch, self.config.num_epochs), desc="Epochs", unit="epoch"):
             print(f"Epoch {epoch + 1}/{self.config.num_epochs}")
@@ -66,9 +67,9 @@ class LlamaTrainer:
 
             self._log_metrics(metrics_log)
 
-            improved = self.checkpoint_manager.check_improvement(val_loss)
-            if improved:
-                self.checkpoint_manager.save_checkpoint(self.model, self.optimizer, epoch)
+            if self.checkpoint_manager.check_improvement(val_loss):
+                self.checkpoint_manager.save_checkpoint(self.model, self.optimizer, epoch, "llama_best.pth")
+
             if self.checkpoint_manager.should_stop():
                 logger.info("Early stopping triggered.")
                 break
@@ -104,6 +105,9 @@ class LlamaTrainer:
 
             global_step = epoch * len(train_dataloader) + batch_idx
             self.writer.add_scalar('Train/Loss_batch', loss.item(), global_step)
+
+            if batch_idx % 5000 == 0:
+                self.checkpoint_manager.save_checkpoint(self.model, self.optimizer, epoch, "llama_latest.pth")
 
         avg_loss = total_loss / total_samples
         accuracy = total_correct / total_samples

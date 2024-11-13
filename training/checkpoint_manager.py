@@ -1,7 +1,4 @@
 import torch
-from logging import getLogger
-
-logger = getLogger(__name__)
 
 class CheckpointManager:
     def __init__(self, config):
@@ -17,7 +14,7 @@ class CheckpointManager:
             'optimizer_state_dict': optimizer.state_dict(),
             'best_val_loss': self.best_val_loss,
         }, self.config.checkpoints_folder / checkpoint_name)
-        logger.info(f"Checkpoint saved at epoch {epoch + 1}")
+        print(f"Checkpoint saved at epoch {epoch + 1}")
 
     def load_checkpoint(self, model, optimizer, checkpoint_name: str):
         """Load checkpoint if it exists. Returns starting epoch."""
@@ -28,7 +25,7 @@ class CheckpointManager:
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             self.best_val_loss = checkpoint['best_val_loss']
             starting_epoch = checkpoint['epoch'] + 1
-            logger.info(f"Loaded checkpoint from epoch {starting_epoch}")
+            print(f"Loaded checkpoint from epoch {starting_epoch}")
             return starting_epoch
         return 0
 
@@ -40,7 +37,7 @@ class CheckpointManager:
             return True
         else:
             self.patience_counter += 1
-            logger.info(f"No improvement in validation loss for {self.patience_counter} epoch(s)")
+            print(f"No improvement in validation loss for {self.patience_counter} epoch(s)")
             return False
 
     def should_stop(self):

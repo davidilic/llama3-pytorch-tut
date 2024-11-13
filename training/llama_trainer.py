@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import logging
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import torch.optim.lr_scheduler
@@ -17,8 +16,6 @@ class MetricsLog:
     val_loss: float
     val_accuracy: float
     val_perplexity: float
-
-logger = logging.getLogger(__name__)
 
 class LlamaTrainer:
     def __init__(self, model, config, device):
@@ -46,6 +43,8 @@ class LlamaTrainer:
 
         starting_epoch = self.checkpoint_manager.load_checkpoint(self.model, self.optimizer, "llama_latest.pth") or \
                         self.checkpoint_manager.load_checkpoint(self.model, self.optimizer, "llama_best.pth")
+        
+        print("Starting epoch: ", starting_epoch)
 
         for epoch in tqdm(range(starting_epoch, self.config.num_epochs), desc="Epochs", unit="epoch"):
             print(f"Epoch {epoch + 1}/{self.config.num_epochs}")
@@ -71,7 +70,7 @@ class LlamaTrainer:
                 self.checkpoint_manager.save_checkpoint(self.model, self.optimizer, epoch, "llama_best.pth")
 
             if self.checkpoint_manager.should_stop():
-                logger.info("Early stopping triggered.")
+                print("Early stopping triggered.")
                 break
 
         self._final_evaluation(test_dataloader)
@@ -158,8 +157,8 @@ class LlamaTrainer:
         if self.config.checkpoint_path.exists():
             checkpoint = torch.load(self.config.checkpoint_path)
             self.model.load_state_dict(checkpoint['model_state_dict'])
-            logger.info("Loaded best model for evaluation.")
+            print("Loaded best model for evaluation.")
 
         test_loss, test_acc = self.evaluate(test_dataloader)
         test_ppl = torch.exp(torch.tensor(test_loss)).item()
-        logger.info(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}, Test Perplexity: {test_ppl:.4f}")
+        print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}, Test Perplexity: {test_ppl:.4f}")

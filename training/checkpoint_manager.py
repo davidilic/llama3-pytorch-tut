@@ -6,8 +6,8 @@ class CheckpointManager:
         self.best_val_loss = None
         self.patience_counter = 0
 
-    def save_checkpoint(self, model, optimizer, epoch, checkpoint_name: str):
-        """Save model checkpoint."""
+    def save_checkpoint(self, model: torch.nn.Module, optimizer: torch.optim.Optimizer, epoch: int, checkpoint_name: str):
+        """Save a checkpoint of the model and optimizer."""
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.state_dict(),
@@ -16,8 +16,8 @@ class CheckpointManager:
         }, self.config.checkpoints_folder / checkpoint_name)
         print(f"Checkpoint saved at epoch {epoch + 1}")
 
-    def load_checkpoint(self, model, optimizer, checkpoint_name: str):
-        """Load checkpoint if it exists. Returns starting epoch."""
+    def load_checkpoint(self, model: torch.nn.Module, optimizer: torch.optim.Optimizer, checkpoint_name: str):
+        """Load a checkpoint if it exists."""
         checkpoint_path = self.config.checkpoints_folder / checkpoint_name
         if checkpoint_path.exists():
             checkpoint = torch.load(checkpoint_path)
@@ -29,7 +29,7 @@ class CheckpointManager:
             return starting_epoch
         return 0
 
-    def check_improvement(self, val_loss):
+    def check_improvement(self, val_loss: float):
         """Check if validation loss has improved."""
         if self.best_val_loss is None or val_loss < self.best_val_loss:
             self.best_val_loss = val_loss

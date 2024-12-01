@@ -41,8 +41,8 @@ class LlamaTrainer:
         self.model.train()
         train_dataloader, val_dataloader, test_dataloader = self.data_handler.get_dataloaders()
 
-        starting_epoch = self.checkpoint_manager.load_checkpoint(self.model, self.optimizer, "llama_latest.pth") or \
-                        self.checkpoint_manager.load_checkpoint(self.model, self.optimizer, "llama_best.pth")
+        starting_epoch = self.checkpoint_manager.load_checkpoint(self.model, self.optimizer, "llama_latest.bin") or \
+                        self.checkpoint_manager.load_checkpoint(self.model, self.optimizer, "llama_best.bin")
         
         print("Starting epoch: ", starting_epoch)
 
@@ -67,7 +67,7 @@ class LlamaTrainer:
             self._log_metrics(metrics_log)
 
             if self.checkpoint_manager.check_improvement(val_loss):
-                self.checkpoint_manager.save_checkpoint(self.model, self.optimizer, epoch, "llama_best.pth")
+                self.checkpoint_manager.save_checkpoint(self.model, self.optimizer, epoch, "llama_best.bin")
 
             if self.checkpoint_manager.should_stop():
                 print("Early stopping triggered.")
@@ -106,7 +106,7 @@ class LlamaTrainer:
             self.writer.add_scalar('Train/Loss_batch', loss.item(), global_step)
 
             if batch_idx % 5000 == 0:
-                self.checkpoint_manager.save_checkpoint(self.model, self.optimizer, epoch, "llama_latest.pth")
+                self.checkpoint_manager.save_checkpoint(self.model, self.optimizer, epoch, "llama_latest.bin")
 
         avg_loss = total_loss / total_samples
         accuracy = total_correct / total_samples
@@ -154,11 +154,6 @@ class LlamaTrainer:
 
     def _final_evaluation(self, test_dataloader):
         """Perform final evaluation on test set."""
-        if self.config.checkpoint_path.exists():
-            checkpoint = torch.load(self.config.checkpoint_path)
-            self.model.load_state_dict(checkpoint['model_state_dict'])
-            print("Loaded best model for evaluation.")
-
         test_loss, test_acc = self.evaluate(test_dataloader)
         test_ppl = torch.exp(torch.tensor(test_loss)).item()
         print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}, Test Perplexity: {test_ppl:.4f}")

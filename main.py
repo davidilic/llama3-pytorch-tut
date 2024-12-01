@@ -9,26 +9,26 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     llama_config = LlamaConfig(
-        vocab_size=50257,        # Reduced from 50257
-        context_length=1024,     # Keep as is
-        embedding_dim=512,       # Reduced from 624
-        num_heads=8,            # Reduced from 12
-        num_layers=8,           # Reduced from 10
-        hidden_dim=2048,        # Reduced from 3072
-        num_kv_groups=4,        # Keep as is
-        rope_base=10000,        # Keep as is
-        dtype=torch.bfloat16    # Keep as is
+        vocab_size=50257,
+        context_length=1024,
+        embedding_dim=512,
+        num_heads=8,
+        num_layers=8,
+        hidden_dim=2048,
+        num_kv_groups=4,
+        rope_base=10000,
+        dtype=torch.bfloat16
     )
 
     training_config = TrainingConfig(
-        learning_rate=1e-4,      # Reduced from 1e-3
-        max_learning_rate=3e-4,  # Reduced from 5e-4
-        num_epochs=3,           # Reduced from 10
-        patience=2,             # Reduced from 3
+        learning_rate=1e-4,
+        max_learning_rate=3e-4,
+        num_epochs=3,
+        patience=2,
         checkpoints_folder=Path('checkpoints/'),
         dataset_path="data/pes2o",
-        batch_size=16,          # Reduced from 32
-        context_length=1024     # Keep as is
+        batch_size=16,
+        context_length=1024
     )
     
     model = Llama3(llama_config).to(device)
